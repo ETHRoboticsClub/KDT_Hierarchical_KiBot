@@ -560,11 +560,11 @@ definitions:
   PROJECT_NAME: Project Name
   BOARD_NAME: Board Name
 
-  COMPANY: Company Name
+  COMPANY: ETH Robotics Club
   DESIGNER: Author
 
   LOGO: 'Logos/dummy_logo.png'
-  GIT_URL: 'https://github.com/nguyen-v/KDT_Hierarchical_KiBot'
+  GIT_URL: 'https://github.com/ETHRoboticsClub/KDT_Hierarchical_KiBot'
 
   # Preflight ==================================================================
 

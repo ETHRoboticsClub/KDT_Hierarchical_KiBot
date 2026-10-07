@@ -89,7 +89,7 @@ An example project using this template can be found [here](https://github.com/ng
    **Linux**:
 
    ```
-   cp -i KDT_Hierarchical_KiBot/kibot_resources/fonts/*.ttf ~/.fonts/
+   cp -i KDT_Hierarchical_KiBot/kibot_resources/fonts/*.ttf ~/.local/share/fonts/
    fc-cache
    ```
 
