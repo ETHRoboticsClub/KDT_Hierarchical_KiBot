@@ -1,0 +1,22 @@
+# TEMPLATE: all rules are commented out. After creating your project, uncomment,
+# fix the root-sheet file name (KiCad renames it to <project>.kicad_sch) and
+# replace the @placeholders. GitHub reports unknown users/teams as errors.
+#
+# Who must review a PR into dev that touches a file.
+# Replace the @placeholders with real GitHub users or @org/team handles.
+# Only enforced when the dev ruleset has "Require review from Code Owners"
+# (needs a public repo, or GitHub Team/Pro for private repos).
+# Spaces in paths must be escaped with a backslash.
+
+# Shared/integration files: the integrator(s)
+# *.kicad_pro                         @your-org/hw-integrators
+# *.kicad_pcb                         @your-org/hw-integrators
+# *.kicad_dru                         @your-org/hw-integrators
+# /KDT_Hierarchical_KiBot.kicad_sch   @your-org/hw-integrators
+# /Project\ Architecture.kicad_sch    @your-org/hw-integrators
+# /.github/                           @your-org/hw-integrators
+
+# Feature sheets: their owner (keep in sync with .github/sheet-ownership.conf)
+# /Section\ A\ -\ Title\ A.kicad_sch  @alice
+# /Section\ B\ -\ TItle\ B.kicad_sch  @bob
+# /Power\ -\ Sequencing.kicad_sch     @alice

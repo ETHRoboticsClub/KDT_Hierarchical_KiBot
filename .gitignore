@@ -14,3 +14,12 @@ kibot_*.kicad_pcb
 kibot_*.kicad_dru
 kibot_*.kicad_prl
 kibot_*.kicad_pro
+
+# --- multi-user additions ---
+# Per-user KiCad state (open sheets, layer visibility, zoom): never share
+*.kicad_prl
+# KiCad 9 lock files / local caches
+~*.lck
+.history/
+# KiBot logs are uploaded as CI artifacts, not committed
+kibot_*.log

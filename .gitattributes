@@ -1,0 +1,31 @@
+# KiCad sources are text with LF endings on every OS (prevents whole-file diffs
+# when a Windows user with core.autocrlf=true commits a sheet).
+*.kicad_sch   text eol=lf
+*.kicad_pcb   text eol=lf
+*.kicad_pro   text eol=lf
+*.kicad_sym   text eol=lf
+*.kicad_mod   text eol=lf
+*.kicad_dru   text eol=lf
+*.kicad_wks   text eol=lf
+sym-lib-table text eol=lf
+fp-lib-table  text eol=lf
+*.sh          text eol=lf
+
+# Binary outputs: never try to merge them line by line
+*.pdf  binary
+*.zip  binary
+*.step binary
+*.wrl  binary
+*.png  binary
+*.jpg  binary
+*.xlsx binary
+
+# CI-generated folders: collapsed by default in GitHub PR diffs
+Schematic/**      linguist-generated=true
+Manufacturing/**  linguist-generated=true
+3D/**             linguist-generated=true
+HTML/**           linguist-generated=true
+KiRI/**           linguist-generated=true
+Report*/**        linguist-generated=true
+Testing/**        linguist-generated=true
+Images/**         linguist-generated=true
