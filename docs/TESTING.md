@@ -34,7 +34,7 @@ Actions minutes and branch rulesets on the Free plan).
 # 2a. Install the adjusted template into KiCad 9's user template folder
 mkdir -p ~/.local/share/kicad/9.0/template && cd ~/.local/share/kicad/9.0/template
 git clone -b ci/multi-user-workflow git@github.com:ETHRoboticsClub/KDT_Hierarchical_KiBot.git
-cp -i KDT_Hierarchical_KiBot/kibot_resources/fonts/*.ttf ~/.fonts/ && fc-cache
+mkdir -p ~/.local/share/fonts && cp -i KDT_Hierarchical_KiBot/kibot_resources/fonts/*.ttf ~/.local/share/fonts/ && fc-cache
 mkdir -p ~/.config/kicad/9.0/colors && cp -i KDT_Hierarchical_KiBot/kibot_resources/colors/Altium_Theme.json ~/.config/kicad/9.0/colors/
 ```
 
@@ -62,7 +62,7 @@ What to check after renaming:
 
 * `.github/sheet-ownership.conf`: the three sub-sheet entries still match (KiCad only renames the root files to `ci_dummy.*`). If you add your own sheets, add a line per feature.
 * `.github/CODEOWNERS`: optional for the test; rules are commented out.
-* `kibot_yaml/kibot_main.yaml`: `GIT_URL` still points to the upstream template; set it to the sandbox URL (it only appears in the generated docs).
+* `kibot_yaml/kibot_main.yaml`: `GIT_URL` points to the template repo; set it to the sandbox URL (it only appears in the generated docs).
 
 GitHub settings of the sandbox:
 

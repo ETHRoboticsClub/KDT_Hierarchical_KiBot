@@ -33,7 +33,7 @@ git config --global user.name  "Your Name"
 git config --global user.email "you@example.org"
 git config --global pull.rebase false     # pull = merge (simplest for KiCad files)
 git clone git@github.com:<org>/<project>.git && cd <project>
-cp -i kibot_resources/fonts/*.ttf ~/.fonts/ && fc-cache
+mkdir -p ~/.local/share/fonts && cp -i kibot_resources/fonts/*.ttf ~/.local/share/fonts/ && fc-cache
 cp -i kibot_resources/colors/Altium_Theme.json ~/.config/kicad/9.0/colors/
 ```
 
