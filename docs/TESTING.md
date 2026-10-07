@@ -96,18 +96,32 @@ don't push from three places.
 |---|---|---|
 | T1 | Alice: add a resistor in *Section A*, annotate current sheet only, commit just that file, push | guard ✅, ERC step runs, artifact `schematic-check-N` contains a schematic PDF showing the resistor. **No** commit from CI on `feature/section-a` |
 | T2 | Bob (in parallel): same in *Section B*, push | same as T1 |
-| T3 | Both open PRs into dev, merge Alice's, then Bob's | Bob's PR merges **without conflicts**. After each merge, a dev run commits "Update Outputs" |
+| T3 | Both open PRs into dev, merge Alice's, then Bob's (within ~1 min) | Bob's PR merges **without conflicts**. The first dev run notices dev moved and does not push; only the second commits "Update Outputs" |
 | T4 | Alice: edit *Section B* too, push | guard ❌, annotation on the file name in the run summary |
 | T5 | Alice: change a net class (touches `.kicad_pro`), push | guard ❌ (shared file) |
 | T6 | After T3: Bob pushes to dev **without** pulling | push rejected (non-fast-forward). `git pull` merges cleanly (only outputs changed), push works |
 | T7 | Push two commits to dev 30 s apart | second run waits (concurrency); first run logs "Outputs not pushed … branch moved"; only one "Update Outputs" commit lands |
 | T8 | Enable the dev ruleset (require PR) | **Expected failure**: CI can't push "Update Outputs" to dev. Fix: add the bypass actor (or deploy key) for CI, or require PRs only on main. Re-run T3 |
 | T9 | Alice and Bob both edit *Project Architecture* (parent sheet) on dev | real Git conflict: demonstrates why parent sheets belong to the integrator |
-| T10 | Both annotate with "entire schematic" on their branches, merge | Git merges, ERC on dev reports duplicate references: demonstrates the annotation rule |
-| T11 | Set `ERC_BLOCKING=true`, push a feature with an unconnected pin | Schematic check ❌ |
+| T10 | Both annotate with "entire schematic" (both get R1), open a PR into dev | Git merges cleanly. KiCad's CLI ERC does **not** see it; the *Duplicate / unannotated references* step reports R1 on both sheets (warning, or ❌ with `ERC_BLOCKING=true`) |
+| T11 | Push a feature with an unconnected pin; then set `ERC_BLOCKING=true` and re-run | First: job ✅ with an ERC warning and a `KiBot: kibot_erc.log` annotation naming the pin. Then: Schematic check ❌ |
 | T12 | PR dev → main, merge, `git tag 0.1.0 && git push origin 0.1.0` | release with assets; `CHANGELOG.md` gets a `0.1.0` section; then `git switch dev && git merge origin/main` |
 
 Pass = T1–T7, T11, T12 behave as expected and you understood T8–T10.
+
+Notes from the first sandbox run (Oct 2026):
+
+* A brand-new project has no board outline and no drill holes. KiBot then
+  writes no drill table and cannot configure the fabrication PDF, so the
+  README step is skipped with the warning *README.md not updated* until the
+  board has holes. Schematic outputs are unaffected. A release (T12) needs a
+  board with an outline and at least one hole.
+* Failed KiBot steps post their errors as annotations on the run and on the
+  PR's checks tab; you rarely need to download the log artifacts.
+* Every dev push produces an "Update Outputs" commit, even without design
+  changes: KiBot stamps the commit hash and date into the PDFs and netlist.
+* PRs into main run no checks: their head is always a bot commit, which
+  GitHub only runs after a manual "Approve and run".
 
 ## 5. Optional: run KiBot locally (Docker)
 

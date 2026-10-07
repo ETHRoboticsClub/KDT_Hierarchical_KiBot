@@ -11,6 +11,7 @@
 #                             so feature branches never collect generated files
 #                             and nothing has to be pulled after the run.
 #   PR    feature/* -> dev -> sheet_guard + feature_check (use as required checks)
+#                             (PRs into main run nothing: dev is already checked)
 #   push  dev / main       -> generate_outputs, commits "Update Outputs" back.
 #   push  tag x.y.z        -> generate_outputs (RELEASED variant) + release job
 #
@@ -36,10 +37,12 @@ on:
       - '**.md'
   # No paths-ignore here on purpose: if the PR checks are "required" in a
   # ruleset, a docs-only PR would otherwise wait forever for checks that never run.
+  # Only PRs into dev: a dev -> main PR always ends in a bot "Update Outputs"
+  # commit, and GitHub holds PR runs for bot commits until someone clicks
+  # "Approve and run". dev was already checked by its own push run.
   pull_request:
     branches:
       - dev
-      - main
 
 # One run at a time per branch / PR. Feature and PR runs are superseded by newer
 # pushes; dev/main/tag runs queue so two output commits never race each other.
@@ -100,6 +103,16 @@ jobs:
         with:
           fetch-depth: 0
 
+      # KiCad's command-line ERC skips the annotation checks of the ERC dialog,
+      # so duplicate references from two branches would pass. Same blocking
+      # rule as ERC (ERC_BLOCKING).
+      - name: Duplicate / unannotated references
+        id: refs
+        continue-on-error: ${{ env.erc_blocking != 'true' }}
+        env:
+          REF_CHECK_LEVEL: ${{ env.erc_blocking == 'true' && 'error' || 'warning' }}
+        run: python3 .github/scripts/check_references.py
+
       - name: Revision string for the title block
         run: |
           last_tag=$(git describe --tags --abbrev=0 2>/dev/null || echo "0.0.0")
@@ -126,7 +139,15 @@ jobs:
 
       - name: Flag ERC problems
         if: ${{ steps.erc.outcome == 'failure' }}
-        run: echo "::warning title=ERC::ERC reported errors. Download the 'schematic-check' artifact and open the report in Reports/."
+        run: |
+          echo "::warning title=ERC::ERC reported errors. Details are in the 'KiBot: kibot_erc.log' annotation; the full HTML report is in the 'schematic-check' artifact under Reports/."
+
+      - name: Show KiBot errors
+        if: ${{ failure() || steps.erc.outcome == 'failure' }}
+        env:
+          # red job -> error annotations; non-blocking ERC findings -> warnings
+          KIBOT_ANNOTATION_LEVEL: ${{ job.status == 'failure' && 'error' || 'warning' }}
+        run: bash .github/scripts/kibot_log_annotations.sh
 
       - name: Upload schematic PDF, ERC report and logs
         if: ${{ always() }}
@@ -267,6 +288,19 @@ jobs:
           echo "version_arg=${version_arg}" >> "$GITHUB_ENV"
           echo "additional_args=${additional_args}" >> "$GITHUB_ENV"
 
+      # The fabrication PDF embeds these CSV tables, and KiBot refuses to even
+      # configure it while they are missing. Anything that resolves output paths
+      # (README, notes) configures it too, so a fresh project with no committed
+      # outputs failed in "Generate README only". Create the tables first.
+      # (A board with no drill holes at all gets no drill table; see below.)
+      - name: Generate tables used by the fabrication PDF
+        uses: INTI-CMNB/KiBot@v2_dk9
+        with:
+          skip: all
+          variant: ${{ env.kibot_variant }}
+          config: ${{ env.kibot_config }}
+          additional_args: --log kibot_run_tables.log csv_drill_table csv_impedance_table csv_testpoints_top csv_testpoints_bottom
+
       # Generate notes (skipped for DRAFT variant)
       - name: Generate notes
         if: ${{ env.kibot_variant != 'DRAFT' }}
@@ -279,13 +313,28 @@ jobs:
 
       # Generate README only (only for DRAFT variant)
       - name: Generate README only
+        id: readme
         if: ${{ env.kibot_variant == 'DRAFT' }}
+        continue-on-error: true
         uses: INTI-CMNB/KiBot@v2_dk9
         with:
           skip: draw_fancy_stackup,set_text_variables,erc,drc
           variant: ${{ env.kibot_variant }}
           config: ${{ env.kibot_config }}
           additional_args: --log kibot_run_readme.log md_readme
+
+      # Early in a project the PCB has no holes, so KiBot writes no drill table
+      # and cannot configure the fabrication PDF the README links to. That case
+      # only skips the README update; any other README error fails the job.
+      - name: Check README result
+        if: ${{ steps.readme.outcome == 'failure' }}
+        run: |
+          if grep -qE 'drill_table\.csv.*create it first' kibot_run_readme.log; then
+            echo "::warning title=README.md not updated::The PCB has no drill holes yet, so KiBot cannot configure the fabrication PDF that the README refers to. README.md is regenerated once the board has holes or vias. Schematic outputs are not affected."
+          else
+            KIBOT_ANNOTATION_LEVEL=error bash .github/scripts/kibot_log_annotations.sh kibot_run_readme.log
+            exit 1
+          fi
 
       - name: Generate outputs
         uses: INTI-CMNB/KiBot@v2_dk9
@@ -302,6 +351,13 @@ jobs:
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git config --global user.name "GitHub Actions"
           echo "Triggered by a tag, committing changes in detached HEAD state"
+          # KiBot's git filter files (see the branch cleanup step below)
+          if git ls-files --error-unmatch .gitattributes >/dev/null 2>&1; then
+            git checkout HEAD -- .gitattributes
+          else
+            rm -f .gitattributes
+          fi
+          git ls-files --error-unmatch .gitconfig >/dev/null 2>&1 || rm -f .gitconfig
           git add -A
           git commit -m "Update Outputs (release)"
 
@@ -325,6 +381,15 @@ jobs:
             git ls-files -z '*.kicad_pro' | xargs -0 -r git checkout HEAD --
           fi
           git clean -f -- '*.kicad_pcb' '*.kicad_sch' '*.kicad_pro' '*.kicad_dru' '*.kicad_prl'
+          # The KiBot action writes git "clean" filters into the workspace. They
+          # have no effect here (git never reads a .gitconfig inside a repo), so
+          # keep them out of the commit.
+          if git ls-files --error-unmatch .gitattributes >/dev/null 2>&1; then
+            git checkout HEAD -- .gitattributes
+          else
+            rm -f .gitattributes
+          fi
+          git ls-files --error-unmatch .gitconfig >/dev/null 2>&1 || rm -f .gitconfig
 
       # Push only if nobody pushed in the meantime. If the branch moved, the newer
       # push already has its own (queued) run that will produce fresh outputs, so
@@ -352,6 +417,10 @@ jobs:
             echo "::warning title=Outputs not pushed::Push to $BRANCH was rejected (branch moved or branch protection). See docs/TESTING.md, test T6."
             exit 1
           fi
+
+      - name: Show KiBot errors
+        if: ${{ failure() }}
+        run: bash .github/scripts/kibot_log_annotations.sh
 
       - name: Store log
         if: ${{ always() }}
