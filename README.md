@@ -75,13 +75,13 @@ An example project using this template can be found [here](https://github.com/ng
 
     **Linux**:
     ```
-    cd ~/.local/share/kicad/8.0/template
+    cd /usr/share/kicad/template
     ```
 
 2. Clone the repository
 
     ```
-    git clone https://github.com/nguyen-v/KDT_Hierarchical_KiBot.git
+    git clone git@github.com:ETHRoboticsClub/KDT_Hierarchical_KiBot.git
     ```
 
 3. Install the fonts inside of [`kibot_resources/fonts`](kibot_resources/fonts) if not already installed on the system.
@@ -114,9 +114,11 @@ You should move this file to your KiCad Themes folder.
 > [!CAUTION]
 > Under Linux, the ```.github``` folder from the template needs to be copied at the root of the project directory, as it is not copied when creating a project from a template in KiCad.
 
+
 6. Create a new `dev` branch. This will be the working branch. 
    
    ```
+   git init
    git checkout -b dev
    ```
    
@@ -127,11 +129,11 @@ You should move this file to your KiCad Themes folder.
       PROJECT_NAME: Project Name
       BOARD_NAME: Board Name
 
-      COMPANY: Company Name
+      COMPANY: ETH Robotics Club
       DESIGNER: Author
 
       LOGO: 'Logos/dummy_logo.png'
-      GIT_URL: 'https://github.com/nguyen-v/KDT_Hierarchical_KiBot'
+      GIT_URL: 'https://github.com/ETHRoboticsClub/KDT_Hierarchical_KiBot'
 
       # Preflight ==================================================================
 
@@ -175,7 +177,7 @@ You should move this file to your KiCad Themes folder.
 
 8. The files inside of [`kibot_resources/templates`](kibot_resources/templates) should also be modified according to your project. These include Assembly and Fabrication notes, Impedance table and README file templates.
 
-9. Edit the [`*.kicad_dru`](KDT_Hierarchical_KiBot.kicad_dru) if necessary according to your design rules. Right now, it has been set for PCBWay 6-layer PCBs with 2oz outer 1oz inner, focusing on lowest cost.
+9. Edit the [`*.kicad_dru`](KDT_Hierarchical_KiBot.kicad_dru) if necessary according to your design rules. Right now, it has been set for PCBWay 6-layer PCBs with 2oz outer 1oz inner.
 
 10.  Edit the [`kibot_out_csv_bom.yaml`](kibot_yaml/kibot_out_csv_bom.yaml), [`kibot_out_html_bom.yaml`](kibot_yaml/kibot_out_html_bom.yaml) and [`kibot_out_xlsx_bom.yaml`](kibot_yaml/kibot_out_xlsx_bom.yaml) files according to the component fields that you use. You can refer to the [KiCost Documentation](https://hildogjr.github.io/KiCost/docs/_build/singlehtml/index.html) for the field names.
 
