@@ -69,7 +69,10 @@ git push
 
 ## Getting your work into dev
 
-1. Open a PR `feature/<name>` → `dev`.
+1. Open a PR `feature/<name>` → `dev`. Check the base branch: GitHub's
+   "Compare & pull request" banner targets the repo's **default branch**. Set
+   `dev` as the default branch (Settings → General) so a feature can't land
+   in `main` by accident.
 2. Checks: *Sheet ownership guard* and *Schematic check* must be green.
 3. Merge with **"Create a merge commit"** (not squash: feature branches live long, and squash makes the next PR from the same branch conflict).
 4. CI on dev regenerates all outputs (~ minutes). Then everybody: `git switch dev && git pull`.
@@ -92,3 +95,16 @@ Git cannot lock text files. We use:
 ## Releasing (unchanged from the template)
 
 PR `dev` → `main`, then `git switch main && git pull && git tag 1.0.0 && git push origin 1.0.0`, then `git switch dev && git merge main`.
+
+What the tag run does, in order: commits the CHANGELOG (`[Unreleased]` becomes
+`[1.0.0]`) to main, builds everything with the RELEASED variant (ERC must be
+clean, DRC only reports), commits "Update Outputs (release)" to main and
+creates the GitHub release with the PDFs, Gerbers, ODB++, STEP, BoM and
+pick-and-place as assets. That commit also contains the `.kicad_pcb` (stackup
+drawing, saved in KiCad 9 format) and the `.kicad_pro` (filled-in notes and
+text variables): merge main back into dev right away, before anyone touches
+the PCB. Write real entries under `[Unreleased]` in `CHANGELOG.md` before
+tagging; they become the release notes.
+
+The board needs an outline and at least one hole for a release, otherwise the
+fabrication PDF cannot be built.

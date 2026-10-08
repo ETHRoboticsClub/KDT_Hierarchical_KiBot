@@ -122,6 +122,17 @@ Notes from the first sandbox run (Oct 2026):
   changes: KiBot stamps the commit hash and date into the PDFs and netlist.
 * PRs into main run no checks: their head is always a bot commit, which
   GitHub only runs after a manual "Approve and run".
+* An empty commit (`git commit --allow-empty`) does not start a push run:
+  the `paths-ignore` filter sees no changed files. Use "Re-run all jobs" in
+  the Actions tab instead.
+* A feature branch runs the workflow version it contains. After CI changes
+  on dev, merge dev into the feature branches to pick them up.
+* Nothing stops a PR from a feature branch into main (it happened during the
+  test via the "Compare & pull request" banner). Make `dev` the default
+  branch; with a paid plan or a public repo, add a ruleset on main that
+  requires a reviewed PR.
+* Release (T12) verified: 37 assets, CHANGELOG section, main → dev merge
+  without conflicts.
 
 ## 5. Optional: run KiBot locally (Docker)
 
